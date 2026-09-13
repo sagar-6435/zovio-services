@@ -39,10 +39,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
         final otp = (Random().nextInt(9000) + 1000).toString();
         
         // Send OTP using WhatsApp Gateway
-        await _whatsappService.sendText(
-          phone, 
-          "Your Zovio OTP is: $otp. Do not share this with anyone."
-        );
+        final messageTemplate = '''
+🔐 Zovio OTP: *$otp*
+
+Use this code to verify your Zovio account.
+Valid for *5 minutes*. Please don't share it with anyone.
+
+*Team Zovio*
+Connect. Get It Done.
+''';
+        await _whatsappService.sendText(phone, messageTemplate.trim());
         
         if (mounted) {
           context.push('${AppRoutes.otpVerification}?phone=$phone&otp=$otp');

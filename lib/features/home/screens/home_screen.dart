@@ -8,11 +8,24 @@ import 'package:go_router/go_router.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../providers/auth_provider.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -265,6 +278,7 @@ class HomeScreen extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
+              controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'What do you need help with?',
                 hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
@@ -272,11 +286,23 @@ class HomeScreen extends ConsumerWidget {
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),
+              onSubmitted: (value) {
+                if (value.trim().isNotEmpty) {
+                  context.push('${AppRoutes.customerWorkers}?filter=${value.trim()}');
+                } else {
+                  context.push(AppRoutes.customerWorkers);
+                }
+              },
             ),
           ),
           ElevatedButton(
             onPressed: () {
-              context.push(AppRoutes.customerSearch);
+              final query = _searchController.text.trim();
+              if (query.isNotEmpty) {
+                context.push('${AppRoutes.customerWorkers}?filter=$query');
+              } else {
+                context.push(AppRoutes.customerWorkers);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryAction,
@@ -378,7 +404,8 @@ class HomeScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               return InkWell(
                 onTap: () {
-                  // Navigate to specific category
+                  final catName = categories[index]['name'] as String;
+                  context.push('${AppRoutes.customerWorkers}?filter=$catName');
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -446,7 +473,9 @@ class HomeScreen extends ConsumerWidget {
                     rating: 4.8,
                     reviewCount: 124,
                     price: 'From \$50',
-                    onTap: () {},
+                    onTap: () {
+                      context.push('${AppRoutes.customerWorkers}?filter=House%20Cleaning');
+                    },
                   ),
                 );
               },

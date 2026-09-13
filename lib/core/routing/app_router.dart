@@ -24,6 +24,14 @@ import '../../features/bookings/screens/bookings_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../features/admin/screens/admin_dashboard_screen.dart';
+import '../../features/admin/screens/admin_workers_screen.dart';
+import '../../features/admin/screens/admin_services_screen.dart';
+import '../../features/admin/screens/admin_locations_screen.dart';
+import '../../features/admin/screens/admin_bookings_screen.dart';
+import '../../features/admin/screens/admin_complaints_screen.dart';
+import '../../features/admin/screens/admin_settings_screen.dart';
+import 'admin_shell.dart';
 
 // A simple placeholder screen for missing routes
 class PlaceholderScreen extends StatelessWidget {
@@ -59,8 +67,9 @@ class PlaceholderScreen extends StatelessWidget {
 
 // Global navigator keys for shell routing
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _customerShellNavigatorKey = GlobalKey<NavigatorState>();
-final _workerShellNavigatorKey = GlobalKey<NavigatorState>();
+final _customerShellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'customerShell');
+final _workerShellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'workerShell');
+final _adminShellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'adminShell');
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -75,7 +84,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final path = state.matchedLocation;
 
       // Unauthenticated users trying to access protected routes
-      if (!isAuth && (path.startsWith('/customer') || path.startsWith('/worker') || path.startsWith('/admin'))) {
+      if (!isAuth && (path.startsWith('/customer') || path.startsWith('/worker'))) {
         return AppRoutes.welcome;
       }
 
@@ -85,8 +94,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (role == UserRole.customer) return AppRoutes.customerLocation;
           if (role == UserRole.worker) return AppRoutes.workerRegister;
         } else {
-          if (role == UserRole.customer) return AppRoutes.customerHome;
-          if (role == UserRole.worker) return AppRoutes.workerDashboard;
+          if (role == UserRole.customer || role == UserRole.worker) return AppRoutes.customerHome;
           if (role == UserRole.admin) return AppRoutes.adminDashboard;
         }
       }
@@ -103,11 +111,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           }
         } else {
           // Post-onboarding checks
-          if (role == UserRole.customer && (path.startsWith('/worker') || path.startsWith('/admin') || path == AppRoutes.customerLocation)) {
+          if ((role == UserRole.customer || role == UserRole.worker) && (path.startsWith('/admin') || path == AppRoutes.customerLocation || path == AppRoutes.workerRegister || path == AppRoutes.workerVerification)) {
             return AppRoutes.customerHome;
-          }
-          if (role == UserRole.worker && (path.startsWith('/customer') || path.startsWith('/admin') || path == AppRoutes.workerRegister || path == AppRoutes.workerVerification)) {
-            return AppRoutes.workerDashboard;
           }
           if (role == UserRole.admin && (path.startsWith('/customer') || path.startsWith('/worker'))) {
             return AppRoutes.adminDashboard;
@@ -129,10 +134,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               ElevatedButton(
                 onPressed: () {
                   final role = ref.read(authProvider).userRole;
-                  if (role == UserRole.customer) {
+                  if (role == UserRole.customer || role == UserRole.worker) {
                     context.go(AppRoutes.customerHome);
-                  } else if (role == UserRole.worker) {
-                    context.go(AppRoutes.workerDashboard);
                   } else if (role == UserRole.admin) {
                     context.go(AppRoutes.adminDashboard);
                   } else {
@@ -219,7 +222,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'workers',
-                    builder: (context, state) => const WorkersScreen(),
+                    builder: (context, state) {
+                      final filter = state.uri.queryParameters['filter'];
+                      return WorkersScreen(filter: filter);
+                    },
                   ),
                   GoRoute(
                     path: 'worker/:workerId',
@@ -468,81 +474,75 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.adminLogin,
         builder: (context, state) => const PlaceholderScreen(title: 'Admin Login'),
       ),
-      GoRoute(
-        path: AppRoutes.adminDashboard,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Dashboard'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminUsers,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Users'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminUserDetails,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin User Details'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminWorkers,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Workers'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminWorkerDetails,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Worker Details'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminServices,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Services'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminCategories,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Categories'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminEnquiries,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Enquiries'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminEnquiryDetails,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Enquiry Details'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminBookings,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Bookings'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminBookingDetails,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Booking Details'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminProperties,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Properties'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminPropertyDetails,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Property Details'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminAdvertisements,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Advertisements'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminReviews,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Reviews'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminSupport,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Support'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminSupportDetails,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Support Details'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminReports,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Reports'),
-      ),
-      GoRoute(
-        path: AppRoutes.adminSettings,
-        builder: (context, state) => const PlaceholderScreen(title: 'Admin Settings'),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return AdminShell(navigationShell: navigationShell);
+        },
+        branches: [
+          // Branch 0: Dashboard
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminDashboard,
+                builder: (context, state) => const AdminDashboardScreen(),
+              ),
+            ],
+          ),
+          // Branch 1: Workers
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminWorkers,
+                builder: (context, state) => const AdminWorkersScreen(),
+              ),
+            ],
+          ),
+          // Branch 2: Services
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminServices,
+                builder: (context, state) => const AdminServicesScreen(),
+              ),
+            ],
+          ),
+          // Branch 3: Locations
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/admin/locations',
+                builder: (context, state) => const AdminLocationsScreen(),
+              ),
+            ],
+          ),
+          // Branch 4: Bookings
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminBookings,
+                builder: (context, state) => const AdminBookingsScreen(),
+              ),
+            ],
+          ),
+          // Branch 5: Complaints (mapped to support)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminSupport,
+                builder: (context, state) => const AdminComplaintsScreen(),
+              ),
+            ],
+          ),
+          // Branch 6: Settings
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.adminSettings,
+                builder: (context, state) => const AdminSettingsScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );
