@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../widgets/common/zovio_app_bar.dart';
-import '../../../core/routing/route_names.dart';
+import '../../../providers/auth_provider.dart';
 
-class OtpVerificationScreen extends StatefulWidget {
-  const OtpVerificationScreen({super.key});
+class OtpVerificationScreen extends ConsumerStatefulWidget {
+  final String? phone;
+  final String? mockOtp;
+
+  const OtpVerificationScreen({
+    super.key, 
+    this.phone, 
+    this.mockOtp,
+  });
 
   @override
-  State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
+  ConsumerState<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
+class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   final _formKey = GlobalKey<FormState>();
   final List<TextEditingController> _controllers = List.generate(4, (index) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
@@ -32,8 +40,16 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       final otp = _controllers.map((c) => c.text).join();
       if (otp.length == 4) {
-        // Navigate to Reset Password Screen
-        context.push(AppRoutes.resetPassword);
+        if (widget.mockOtp != null && otp != widget.mockOtp) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid OTP. Please try again.')),
+          );
+          return;
+        }
+        
+        // Log user in
+        // Defaulting to customer for this simple flow
+        ref.read(authProvider.notifier).login(UserRole.customer);
       }
     }
   }
@@ -67,7 +83,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       ),
                       child: const Center(
                         child: Icon(
-                          Icons.mark_email_read_outlined,
+                          Icons.chat_outlined,
                           size: 40,
                           color: AppColors.primaryAction,
                         ),
@@ -75,7 +91,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Check your email',
+                      'Verify Mobile Number',
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -84,7 +100,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      "We've sent a 4-digit verification code to your email. Please enter it below.",
+                      "We've sent a 4-digit code to your WhatsApp ${widget.phone != null ? '(${widget.phone})' : ''}.",
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                             height: 1.5,
@@ -134,6 +150,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                               if (value.isEmpty && index > 0) {
                                 _focusNodes[index - 1].requestFocus();
                               }
+                              // Auto-submit if last digit is entered
+                              if (value.isNotEmpty && index == 3) {
+                                _handleVerify();
+                              }
                             },
                           ),
                         ),
@@ -174,10 +194,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // Resend logic
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Code resent!'),
+                                content: Text('OTP Resent via WhatsApp!'),
                                 backgroundColor: AppColors.success,
                               ),
                             );

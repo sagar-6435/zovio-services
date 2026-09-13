@@ -5,11 +5,7 @@ class AppRoutes {
 
   // Auth
   static const login = '/login';
-  static const signup = '/signup';
-  static const forgotPassword = '/forgot-password';
   static const otpVerification = '/otp-verification';
-  static const resetPassword = '/reset-password';
-  static const roleSelection = '/role-selection';
 
   // Customer
   static const customerLocation = '/customer/location';

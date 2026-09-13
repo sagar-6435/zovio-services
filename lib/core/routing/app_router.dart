@@ -10,12 +10,7 @@ import 'worker_shell.dart';
 // Existing screens
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/splash/screens/welcome_screen.dart';
-import '../../features/auth/screens/login_screen.dart';
-import '../../features/auth/screens/signup_screen.dart';
-import '../../features/auth/screens/role_selection_screen.dart';
-import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/otp_verification_screen.dart';
-import '../../features/auth/screens/reset_password_screen.dart';
 
 import '../../features/home/screens/home_screen.dart';
 import '../../features/explore/screens/explore_screen.dart';
@@ -81,11 +76,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Unauthenticated users trying to access protected routes
       if (!isAuth && (path.startsWith('/customer') || path.startsWith('/worker') || path.startsWith('/admin'))) {
-        return AppRoutes.login;
+        return AppRoutes.welcome;
       }
 
       // Authenticated users trying to access auth pages
-      if (isAuth && (path == AppRoutes.login || path == AppRoutes.signup || path == AppRoutes.welcome || path == AppRoutes.splash)) {
+      if (isAuth && (path == AppRoutes.welcome || path == AppRoutes.splash)) {
         if (!authState.isSetupComplete) {
           if (role == UserRole.customer) return AppRoutes.customerLocation;
           if (role == UserRole.worker) return AppRoutes.workerRegister;
@@ -152,7 +147,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ),
     routes: [
-      // Splash & Auth
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const SplashScreen(),
@@ -162,28 +156,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const WelcomeScreen(),
       ),
       GoRoute(
-        path: AppRoutes.login,
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.signup,
-        builder: (context, state) => const SignupScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.roleSelection,
-        builder: (context, state) => const RoleSelectionScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.forgotPassword,
-        builder: (context, state) => const ForgotPasswordScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.otpVerification,
-        builder: (context, state) => const OtpVerificationScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.resetPassword,
-        builder: (context, state) => const ResetPasswordScreen(),
+        builder: (context, state) {
+          final phone = state.uri.queryParameters['phone'];
+          final otp = state.uri.queryParameters['otp'];
+          return OtpVerificationScreen(phone: phone, mockOtp: otp);
+        },
       ),
 
       // =======================================================================
