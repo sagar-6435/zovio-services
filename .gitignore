@@ -47,3 +47,7 @@ app.*.map.json
 # Added by agent
 .env
 .flutter-plugins
+
+# Node.js backend
+node_modules/
+dist/
