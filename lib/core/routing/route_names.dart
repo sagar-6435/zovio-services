@@ -11,29 +11,29 @@ class AppRoutes {
   static const customerLocation = '/customer/location';
   static const customerHome = '/customer/home';
   static const customerExplore = '/customer/explore';
-  static const customerCategories = '/customer/categories';
-  static const customerCategoryDetails = '/customer/category/:categoryId';
-  static const customerServiceDetails = '/customer/service/:serviceId';
-  static const customerSearch = '/customer/search';
-  static const customerWorkers = '/customer/workers';
-  static const customerWorkerProfile = '/customer/worker/:workerId';
+  static const customerCategories = '/customer/home/categories';
+  static const customerCategoryDetails = '/customer/home/categories/:categoryId';
+  static const customerServiceDetails = '/customer/home/service/:serviceId';
+  static const customerSearch = '/customer/home/search';
+  static const customerWorkers = '/customer/home/workers';
+  static const customerWorkerProfile = '/customer/home/worker/:workerId';
   static const customerEnquiryCreate = '/customer/enquiry/create';
   static const customerEnquiryReview = '/customer/enquiry/review';
   static const customerEnquirySuccess = '/customer/enquiry/success';
   static const customerEnquiries = '/customer/enquiries';
-  static const customerEnquiryDetails = '/customer/enquiry/:enquiryId';
+  static const customerEnquiryDetails = '/customer/enquiries/:enquiryId';
   static const customerBookings = '/customer/bookings';
-  static const customerBookingDetails = '/customer/booking/:bookingId';
-  static const customerProperties = '/customer/properties';
-  static const customerPropertyDetails = '/customer/property/:propertyId';
+  static const customerBookingDetails = '/customer/bookings/:bookingId';
+  static const customerProperties = '/customer/home/properties';
+  static const customerPropertyDetails = '/customer/home/property/:propertyId';
   static const customerPropertyEnquiry = '/customer/property-enquiry';
-  static const customerNotifications = '/customer/notifications';
+  static const customerNotifications = '/customer/home/notifications';
   static const customerProfile = '/customer/profile';
-  static const customerEditProfile = '/customer/edit-profile';
-  static const customerSettings = '/customer/settings';
-  static const customerSavedWorkers = '/customer/saved-workers';
-  static const customerSavedProperties = '/customer/saved-properties';
-  static const customerSupport = '/customer/support';
+  static const customerEditProfile = '/customer/profile/edit';
+  static const customerSettings = '/customer/profile/settings';
+  static const customerSavedWorkers = '/customer/profile/saved-workers';
+  static const customerSavedProperties = '/customer/profile/saved-properties';
+  static const customerSupport = '/customer/profile/support';
   static const customerReviews = '/customer/reviews';
 
   // Worker
@@ -76,15 +76,15 @@ class AppRoutes {
   static const error = '/404';
 
   /// Helper methods for routes with parameters
-  static String getCategoryDetailsRoute(String categoryId) => '/customer/category/$categoryId';
-  static String getServiceDetailsRoute(String serviceId) => '/customer/service/$serviceId';
-  static String getWorkerProfileRoute(String workerId) => '/customer/worker/$workerId';
-  static String getEnquiryDetailsRoute(String enquiryId) => '/customer/enquiry/$enquiryId';
-  static String getBookingDetailsRoute(String bookingId) => '/customer/booking/$bookingId';
-  static String getPropertyDetailsRoute(String propertyId) => '/customer/property/$propertyId';
+  static String getCategoryDetailsRoute(String categoryId) => '/customer/home/categories/$categoryId';
+  static String getServiceDetailsRoute(String serviceId) => '/customer/home/service/$serviceId';
+  static String getWorkerProfileRoute(String workerId) => '/customer/home/worker/$workerId';
+  static String getEnquiryDetailsRoute(String enquiryId) => '/customer/enquiries/$enquiryId';
+  static String getBookingDetailsRoute(String bookingId) => '/customer/bookings/$bookingId';
+  static String getPropertyDetailsRoute(String propertyId) => '/customer/home/property/$propertyId';
   
-  static String getWorkerJobDetailsRoute(String jobId) => '/worker/job/$jobId';
-  static String getWorkerEnquiryDetailsRoute(String enquiryId) => '/worker/enquiry/$enquiryId';
+  static String getWorkerJobDetailsRoute(String jobId) => '/worker/jobs/$jobId';
+  static String getWorkerEnquiryDetailsRoute(String enquiryId) => '/worker/enquiries/$enquiryId';
   
   static String getAdminUserDetailsRoute(String userId) => '/admin/users/$userId';
   static String getAdminWorkerDetailsRoute(String workerId) => '/admin/workers/$workerId';

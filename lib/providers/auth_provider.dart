@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum UserRole {
   customer,
@@ -36,12 +37,49 @@ class AuthState {
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthState(isAuthenticated: false, userRole: UserRole.guest));
+  AuthNotifier() : super(const AuthState(isAuthenticated: false, userRole: UserRole.guest)) {
+    _loadState();
+  }
+
+  Future<void> _loadState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isAuthenticated = prefs.getBool('isAuthenticated') ?? false;
+    final userRoleString = prefs.getString('userRole') ?? 'guest';
+    final isSetupComplete = prefs.getBool('isSetupComplete') ?? false;
+
+    UserRole role;
+    switch (userRoleString) {
+      case 'customer':
+        role = UserRole.customer;
+        break;
+      case 'worker':
+        role = UserRole.worker;
+        break;
+      case 'admin':
+        role = UserRole.admin;
+        break;
+      default:
+        role = UserRole.guest;
+    }
+
+    state = AuthState(
+      isAuthenticated: isAuthenticated,
+      userRole: role,
+      isLoading: false,
+      isSetupComplete: isSetupComplete,
+    );
+  }
 
   Future<void> login(UserRole role) async {
     state = state.copyWith(isLoading: true);
     // Mock network delay
     await Future.delayed(const Duration(seconds: 1));
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isAuthenticated', true);
+    await prefs.setString('userRole', role.name);
+    await prefs.setBool('isSetupComplete', false);
+
     state = AuthState(
       isAuthenticated: true,
       userRole: role,
@@ -50,7 +88,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
-  void completeSetup() {
+  Future<void> completeSetup() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isSetupComplete', true);
     state = state.copyWith(isSetupComplete: true);
   }
 
@@ -58,6 +98,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true);
     // Mock network delay
     await Future.delayed(const Duration(seconds: 1));
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('isAuthenticated');
+    await prefs.remove('userRole');
+    await prefs.remove('isSetupComplete');
+
     state = const AuthState(
       isAuthenticated: false,
       userRole: UserRole.guest,

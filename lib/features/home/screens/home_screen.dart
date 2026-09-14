@@ -195,7 +195,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(width: 48),
           Expanded(
             flex: 5,
-            child: _buildHeroImage(),
+            child: _buildHeroImage(context),
           ),
         ],
       );
@@ -204,7 +204,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           _buildHeroContent(context),
           const SizedBox(height: 48),
-          _buildHeroImage(),
+          _buildHeroImage(context),
         ],
       );
     }
@@ -323,9 +323,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildHeroImage() {
+  Widget _buildHeroImage(BuildContext context) {
+    final bool isDesktop = MediaQuery.of(context).size.width > 900;
+    
     return Container(
-      height: 500,
+      height: isDesktop ? 500 : 250,
       decoration: BoxDecoration(
         color: AppColors.secondaryAction.withOpacity(0.1),
         borderRadius: BorderRadius.circular(32),
@@ -398,7 +400,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               crossAxisCount: MediaQuery.of(context).size.width > 900 ? 8 : (MediaQuery.of(context).size.width > 600 ? 6 : 4),
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 0.8,
+              mainAxisExtent: 120,
             ),
             itemCount: categories.length,
             itemBuilder: (context, index) {
