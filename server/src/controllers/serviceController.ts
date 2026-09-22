@@ -28,7 +28,7 @@ export const updateService = async (req: Request, res: Response) => {
     const service = await Service.findByIdAndUpdate(
       req.params.id,
       { name, description, icon, isActive, locations },
-      { returnDocument: 'after', runValidators: true }
+      { new: true, runValidators: true }
     ).populate('locations');
     
     if (!service) {

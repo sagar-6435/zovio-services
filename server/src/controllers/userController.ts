@@ -12,7 +12,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         $set: { name, email, mobile },
         $setOnInsert: { role: 'customer' }
       },
-      { returnDocument: 'after', runValidators: true, upsert: true }
+      { new: true, runValidators: true, upsert: true }
     );
 
     return res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
