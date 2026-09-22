@@ -25,7 +25,11 @@ class ApiClient {
       final response = await _dio.put('/users/profile/$userId', data: data);
       return response.data;
     } catch (e) {
-      print('Error updating profile: $e');
+      if (e is DioException) {
+        print('Error updating profile: ${e.response?.data}');
+      } else {
+        print('Error updating profile: $e');
+      }
       rethrow;
     }
   }
