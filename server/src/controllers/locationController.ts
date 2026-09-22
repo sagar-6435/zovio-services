@@ -27,7 +27,7 @@ export const updateLocation = async (req: Request, res: Response) => {
     const location = await Location.findByIdAndUpdate(
       req.params.id,
       { city, state, isActive },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
     if (!location) {
       return res.status(404).json({ message: 'Location not found' });
