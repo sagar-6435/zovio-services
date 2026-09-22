@@ -12,12 +12,12 @@ export const getWorkers = async (req: Request, res: Response) => {
 
 export const createWorker = async (req: Request, res: Response) => {
   try {
-    const { name, role, rating, description } = req.body;
-    let imageUrl = '';
+    const { name, role, rating, description, status, imageUrl: bodyImageUrl } = req.body;
+    let imageUrl = bodyImageUrl || '';
 
     if (req.file) {
       imageUrl = req.file.path; // Cloudinary URL
-    } else {
+    } else if (!imageUrl) {
       return res.status(400).json({ message: 'Image is required' });
     }
 
@@ -27,6 +27,7 @@ export const createWorker = async (req: Request, res: Response) => {
       rating: rating || 0,
       description,
       imageUrl,
+      status: status || 'Pending',
     });
 
     await worker.save();
@@ -44,11 +45,17 @@ export const updateWorker = async (req: Request, res: Response) => {
 
     worker.name = req.body.name || worker.name;
     worker.role = req.body.role || worker.role;
-    worker.rating = req.body.rating || worker.rating;
+    worker.rating = req.body.rating !== undefined ? req.body.rating : worker.rating;
     worker.description = req.body.description || worker.description;
+    
+    if (req.body.status) {
+      worker.status = req.body.status;
+    }
 
     if (req.file) {
       worker.imageUrl = req.file.path;
+    } else if (req.body.imageUrl) {
+      worker.imageUrl = req.body.imageUrl;
     }
 
     const updatedWorker = await worker.save();
