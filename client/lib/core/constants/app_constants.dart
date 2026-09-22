@@ -5,7 +5,7 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // API Configuration
-  static const String apiBaseUrl = 'http://localhost:5000/api';
+  static const String apiBaseUrl = 'https://zovio-b.vercel.app/api';
   static const Duration apiTimeout = Duration(seconds: 30);
 
   // Pagination

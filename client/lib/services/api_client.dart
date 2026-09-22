@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 class ApiClient {
   // Live backend on Render (use 192.168.137.1 or 192.168.1.4 for physical device testing)
-  static const String baseUrl = 'http://192.168.137.1:5000/api';
+  static const String baseUrl = 'https://zovio-b.vercel.app/api';
   
   final Dio _dio = Dio(BaseOptions(
     baseUrl: baseUrl,
