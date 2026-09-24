@@ -1,23 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'booking_confirmation_screen.dart';
 import '../../../services/api_client.dart';
+import '../../../providers/auth_provider.dart';
 
-class BookingsScreen extends StatefulWidget {
+class BookingsScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? worker;
 
   const BookingsScreen({super.key, this.worker});
 
   @override
-  State<BookingsScreen> createState() => _BookingsScreenState();
+  ConsumerState<BookingsScreen> createState() => _BookingsScreenState();
 }
 
-class _BookingsScreenState extends State<BookingsScreen> {
+class _BookingsScreenState extends ConsumerState<BookingsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _mobileController = TextEditingController();
   final _locationController = TextEditingController();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    final userMobile = ref.read(authProvider).mobile;
+    if (userMobile != null && userMobile.isNotEmpty) {
+      _mobileController.text = userMobile;
+    }
+  }
 
   Future<void> _submitBooking() async {
     if (_formKey.currentState!.validate()) {

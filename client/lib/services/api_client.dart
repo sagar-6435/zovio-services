@@ -63,6 +63,26 @@ class ApiClient {
       return false;
     }
   }
+  
+  Future<List<dynamic>> getBookings() async {
+    try {
+      final response = await _dio.get('/bookings');
+      return response.data;
+    } catch (e) {
+      print('Error getting bookings: $e');
+      return [];
+    }
+  }
+  
+  Future<bool> updateBookingStatus(String id, String status) async {
+    try {
+      final response = await _dio.patch('/bookings/$id/status', data: {'status': status});
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating booking status: $e');
+      return false;
+    }
+  }
   Future<Map<String, dynamic>> verifyAuth(String mobile) async {
     try {
       final response = await _dio.post('/auth/verify', data: {'mobile': mobile});
