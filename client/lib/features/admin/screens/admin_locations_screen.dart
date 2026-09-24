@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/routing/admin_shell.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../providers/admin_providers.dart';
 import '../../../services/api_client.dart';
+import '../../../widgets/admin/location_picker_dialog.dart';
 
 class AdminLocationsScreen extends ConsumerWidget {
   const AdminLocationsScreen({super.key});
@@ -11,6 +14,9 @@ class AdminLocationsScreen extends ConsumerWidget {
   void _showLocationDialog(BuildContext context, WidgetRef ref, [Map<String, dynamic>? location]) {
     final cityController = TextEditingController(text: location?['city'] ?? '');
     final stateController = TextEditingController(text: location?['state'] ?? '');
+    final latController = TextEditingController(text: location != null && location['latitude'] != null ? location['latitude'].toString() : '');
+    final lngController = TextEditingController(text: location != null && location['longitude'] != null ? location['longitude'].toString() : '');
+    final radiusController = TextEditingController(text: location != null && location['radius'] != null ? location['radius'].toString() : '5');
     bool isActive = location?['isActive'] ?? true;
 
     showDialog(
@@ -20,31 +26,82 @@ class AdminLocationsScreen extends ConsumerWidget {
           builder: (context, setState) {
             return AlertDialog(
               title: Text(location == null ? 'Add Location' : 'Edit Location'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: cityController,
-                    decoration: const InputDecoration(labelText: 'City/Zone'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: stateController,
-                    decoration: const InputDecoration(labelText: 'State'),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Is Active'),
-                      Switch(
-                        value: isActive,
-                        onChanged: (val) => setState(() => isActive = val),
-                        activeColor: AppColors.primaryAction,
-                      ),
-                    ],
-                  ),
-                ],
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: cityController,
+                      decoration: const InputDecoration(labelText: 'City/Zone'),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: stateController,
+                      decoration: const InputDecoration(labelText: 'State'),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: latController,
+                            decoration: const InputDecoration(labelText: 'Latitude'),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: lngController,
+                            decoration: const InputDecoration(labelText: 'Longitude'),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.map, color: AppColors.primaryAction),
+                          tooltip: 'Pick on Map',
+                          onPressed: () async {
+                            final double? currentLat = double.tryParse(latController.text);
+                            final double? currentLng = double.tryParse(lngController.text);
+                            final initialLoc = (currentLat != null && currentLng != null)
+                                ? LatLng(currentLat, currentLng)
+                                : null;
+                                
+                            final LatLng? picked = await showDialog(
+                              context: context,
+                              builder: (context) => LocationPickerDialog(
+                                initialLocation: initialLoc,
+                              ),
+                            );
+                            if (picked != null) {
+                              latController.text = picked.latitude.toStringAsFixed(6);
+                              lngController.text = picked.longitude.toStringAsFixed(6);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: radiusController,
+                      decoration: const InputDecoration(labelText: 'Service Radius (km)'),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Is Active'),
+                        Switch(
+                          value: isActive,
+                          onChanged: (val) => setState(() => isActive = val),
+                          activeColor: AppColors.primaryAction,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -53,11 +110,14 @@ class AdminLocationsScreen extends ConsumerWidget {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (cityController.text.isEmpty || stateController.text.isEmpty) return;
+                    if (cityController.text.isEmpty || stateController.text.isEmpty || latController.text.isEmpty || lngController.text.isEmpty) return;
                     
                     final data = {
                       'city': cityController.text,
                       'state': stateController.text,
+                      'latitude': double.tryParse(latController.text) ?? 0.0,
+                      'longitude': double.tryParse(lngController.text) ?? 0.0,
+                      'radius': double.tryParse(radiusController.text) ?? 5.0,
                       'isActive': isActive,
                     };
 
@@ -106,16 +166,22 @@ class AdminLocationsScreen extends ConsumerWidget {
         elevation: 0,
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ElevatedButton.icon(
-              onPressed: () => _showLocationDialog(context, ref),
-              icon: const Icon(Icons.add_location),
-              label: const Text('Add Location'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryAction,
-                foregroundColor: Colors.white,
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Responsive.isMobile(context)
+                ? IconButton(
+                    icon: const Icon(Icons.add_location, color: AppColors.primaryAction),
+                    onPressed: () => _showLocationDialog(context, ref),
+                    tooltip: 'Add Location',
+                  )
+                : ElevatedButton.icon(
+                    onPressed: () => _showLocationDialog(context, ref),
+                    icon: const Icon(Icons.add_location),
+                    label: const Text('Add Location'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryAction,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
           )
         ],
         bottom: PreferredSize(

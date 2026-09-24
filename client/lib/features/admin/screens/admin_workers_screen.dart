@@ -10,8 +10,9 @@ class AdminWorkersScreen extends ConsumerWidget {
 
   void _showWorkerDialog(BuildContext context, WidgetRef ref, [Map<String, dynamic>? worker]) {
     final nameController = TextEditingController(text: worker?['name'] ?? '');
-    final roleController = TextEditingController(text: worker?['role'] ?? '');
+    String role = worker?['role'] ?? '';
     String status = worker?['status'] ?? 'Pending';
+    final servicesFuture = apiClient.getServices();
 
     showDialog(
       context: context,
@@ -29,9 +30,56 @@ class AdminWorkersScreen extends ConsumerWidget {
                       decoration: const InputDecoration(labelText: 'Worker Name'),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: roleController,
-                      decoration: const InputDecoration(labelText: 'Role / Service (e.g. Plumbing)'),
+                    FutureBuilder<List<dynamic>>(
+                      future: servicesFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        final services = snapshot.data ?? [];
+                        final serviceNames = services.map((s) => s['name'] as String).toList();
+                        final selectedRoles = role.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+                        
+                        for (final r in selectedRoles) {
+                          if (!serviceNames.contains(r)) {
+                            serviceNames.add(r);
+                          }
+                        }
+
+                        return InkWell(
+                          onTap: () async {
+                            final selected = await showDialog<List<String>>(
+                              context: context,
+                              builder: (ctx) {
+                                return _MultiSelectDialog(
+                                  items: serviceNames,
+                                  initialSelectedItems: selectedRoles,
+                                );
+                              },
+                            );
+                            if (selected != null) {
+                              setState(() {
+                                role = selected.join(', ');
+                              });
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Role / Services',
+                              suffixIcon: Icon(Icons.arrow_drop_down),
+                            ),
+                            child: Text(
+                              selectedRoles.isEmpty ? 'Select Services' : selectedRoles.join(', '),
+                              style: TextStyle(
+                                color: selectedRoles.isEmpty ? Colors.grey : AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
@@ -52,11 +100,11 @@ class AdminWorkersScreen extends ConsumerWidget {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (nameController.text.isEmpty || roleController.text.isEmpty) return;
+                    if (nameController.text.isEmpty || role.isEmpty) return;
                     
                     final data = {
                       'name': nameController.text,
-                      'role': roleController.text,
+                      'role': role,
                       'status': status,
                       'imageUrl': worker?['imageUrl'] ?? 'https://via.placeholder.com/150', // Mock image
                     };
@@ -146,8 +194,8 @@ class AdminWorkersScreen extends ConsumerWidget {
                       'All Workers',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(
-                      width: 250,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 250),
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: 'Search workers...',
@@ -260,6 +308,67 @@ class AdminWorkersScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MultiSelectDialog extends StatefulWidget {
+  final List<String> items;
+  final List<String> initialSelectedItems;
+
+  const _MultiSelectDialog({required this.items, required this.initialSelectedItems});
+
+  @override
+  State<_MultiSelectDialog> createState() => _MultiSelectDialogState();
+}
+
+class _MultiSelectDialogState extends State<_MultiSelectDialog> {
+  final List<String> _selectedItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedItems.addAll(widget.initialSelectedItems);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Select Services'),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: widget.items.map((item) {
+            return CheckboxListTile(
+              value: _selectedItems.contains(item),
+              title: Text(item),
+              controlAffinity: ListTileControlAffinity.leading,
+              onChanged: (isChecked) {
+                setState(() {
+                  if (isChecked == true) {
+                    _selectedItems.add(item);
+                  } else {
+                    _selectedItems.remove(item);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryAction,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () => Navigator.pop(context, _selectedItems),
+          child: const Text('OK'),
         ),
       ],
     );

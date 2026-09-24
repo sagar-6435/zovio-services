@@ -1,8 +1,46 @@
 import { Request, Response } from 'express';
 import Worker from '../models/Worker';
+import Location from '../models/Location';
+
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  return R * c; 
+}
 
 export const getWorkers = async (req: Request, res: Response) => {
   try {
+    const { lat, lng } = req.query;
+    
+    // If client provided coordinates, check against active locations
+    if (lat && lng) {
+      const userLat = parseFloat(lat as string);
+      const userLng = parseFloat(lng as string);
+      
+      const activeLocations = await Location.find({ isActive: true });
+      let isWithinAnyLocation = false;
+      
+      for (const loc of activeLocations) {
+        if (loc.latitude && loc.longitude && loc.radius) {
+          const dist = getDistanceFromLatLonInKm(userLat, userLng, loc.latitude, loc.longitude);
+          if (dist <= loc.radius) {
+            isWithinAnyLocation = true;
+            break;
+          }
+        }
+      }
+      
+      if (!isWithinAnyLocation) {
+        return res.json([]); // Return empty if outside all service areas
+      }
+    }
+
     const workers = await Worker.find();
     res.json(workers);
   } catch (error) {

@@ -12,8 +12,8 @@ export const getLocations = async (req: Request, res: Response) => {
 
 export const createLocation = async (req: Request, res: Response) => {
   try {
-    const { city, state, isActive } = req.body;
-    const location = new Location({ city, state, isActive });
+    const { city, state, isActive, latitude, longitude, radius } = req.body;
+    const location = new Location({ city, state, isActive, latitude, longitude, radius });
     await location.save();
     res.status(201).json(location);
   } catch (error) {
@@ -23,10 +23,10 @@ export const createLocation = async (req: Request, res: Response) => {
 
 export const updateLocation = async (req: Request, res: Response) => {
   try {
-    const { city, state, isActive } = req.body;
+    const { city, state, isActive, latitude, longitude, radius } = req.body;
     const location = await Location.findByIdAndUpdate(
       req.params.id,
-      { city, state, isActive },
+      { city, state, isActive, latitude, longitude, radius },
       { new: true, runValidators: true }
     );
     if (!location) {

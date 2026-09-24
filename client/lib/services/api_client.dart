@@ -10,9 +10,14 @@ class ApiClient {
     receiveTimeout: const Duration(seconds: 10),
   ));
 
-  Future<List<dynamic>> getWorkers() async {
+  Future<List<dynamic>> getWorkers({double? lat, double? lng}) async {
     try {
-      final response = await _dio.get('/workers');
+      final queryParams = <String, dynamic>{};
+      if (lat != null && lng != null) {
+        queryParams['lat'] = lat;
+        queryParams['lng'] = lng;
+      }
+      final response = await _dio.get('/workers', queryParameters: queryParams);
       return response.data;
     } catch (e) {
       print('Error fetching workers: $e');

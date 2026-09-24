@@ -155,18 +155,18 @@ class AdminServicesScreen extends ConsumerWidget {
                 }
                 return LayoutBuilder(
                   builder: (context, constraints) {
-                    int crossAxisCount = 4;
-                    if (constraints.maxWidth < 600) crossAxisCount = 1;
-                    else if (constraints.maxWidth < 900) crossAxisCount = 2;
-                    else if (constraints.maxWidth < 1200) crossAxisCount = 3;
+                    int crossAxisCount = 5;
+                    if (constraints.maxWidth < 600) crossAxisCount = 2;
+                    else if (constraints.maxWidth < 900) crossAxisCount = 3;
+                    else if (constraints.maxWidth < 1200) crossAxisCount = 4;
 
                     return GridView.builder(
                       itemCount: services.length,
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: 24,
-                        mainAxisSpacing: 24,
-                        childAspectRatio: 1.2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        mainAxisExtent: 180,
                       ),
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -195,7 +195,7 @@ class AdminServicesScreen extends ConsumerWidget {
     if (service['icon'] == 'electrical_services') iconData = Icons.electrical_services;
     
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
@@ -208,38 +208,41 @@ class AdminServicesScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppColors.primaryAction.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(iconData, color: AppColors.primaryAction),
+                child: Icon(iconData, color: AppColors.primaryAction, size: 24),
               ),
-              Switch(
-                value: isActive,
-                onChanged: (val) async {
-                  await apiClient.updateService(service['_id'], {'isActive': val});
-                  ref.invalidate(servicesProvider);
-                },
-                activeThumbColor: AppColors.primaryAction,
+              Transform.scale(
+                scale: 0.8,
+                child: Switch(
+                  value: isActive,
+                  onChanged: (val) async {
+                    await apiClient.updateService(service['_id'], {'isActive': val});
+                    ref.invalidate(servicesProvider);
+                  },
+                  activeThumbColor: AppColors.primaryAction,
+                ),
               ),
             ],
           ),
           const Spacer(),
           Text(
             service['name'] ?? 'Unknown',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             service['description'] ?? 'No description',
-            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Row(
             children: [
               TextButton(
