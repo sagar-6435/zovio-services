@@ -1,7 +1,9 @@
 import express from 'express';
-import { getLocations, createLocation, updateLocation, deleteLocation } from '../controllers/locationController';
+import { getLocations, createLocation, updateLocation, deleteLocation, checkServiceability } from '../controllers/locationController';
 
 const router = express.Router();
+
+router.post('/check-serviceability', checkServiceability);
 
 router.route('/')
   .get(getLocations)
