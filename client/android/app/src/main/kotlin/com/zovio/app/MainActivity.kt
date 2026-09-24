@@ -1,4 +1,4 @@
-package com.zovio.zovio
+package com.zovio.app
 
 import io.flutter.embedding.android.FlutterActivity
 
