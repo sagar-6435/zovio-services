@@ -11,6 +11,7 @@ import 'worker_shell.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/splash/screens/welcome_screen.dart';
 import '../../features/auth/screens/otp_verification_screen.dart';
+import '../../features/splash/screens/not_serviceable_screen.dart';
 
 import '../../features/home/screens/home_screen.dart';
 import '../../features/explore/screens/explore_screen.dart';
@@ -100,7 +101,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final path = state.matchedLocation;
 
       // Unauthenticated users trying to access protected routes
-      if (!isAuth && (path.startsWith('/customer') || path.startsWith('/worker'))) {
+      if (!isAuth && (path.startsWith('/customer') || path.startsWith('/worker') || path == AppRoutes.notServiceable)) {
         return AppRoutes.welcome;
       }
 
@@ -117,7 +118,16 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Role-based route protection and Onboarding
       if (isAuth) {
-        if (!authState.isSetupComplete) {
+        // Location serviceability check
+        if (!authState.isServiceableLocation && path != AppRoutes.notServiceable) {
+          return AppRoutes.notServiceable;
+        }
+        if (authState.isServiceableLocation && path == AppRoutes.notServiceable) {
+          if (role == UserRole.customer || role == UserRole.worker) return AppRoutes.customerHome;
+          if (role == UserRole.admin) return AppRoutes.adminDashboard;
+        }
+
+        if (!authState.isSetupComplete && path != AppRoutes.notServiceable) {
           // Onboarding checks
           if (role == UserRole.customer && path != AppRoutes.customerLocation) {
             return AppRoutes.customerLocation;
@@ -125,7 +135,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (role == UserRole.worker && path != AppRoutes.workerRegister && path != AppRoutes.workerVerification) {
             return AppRoutes.workerRegister; // Or allow Verification if they navigate to it
           }
-        } else {
+        } else if (path != AppRoutes.notServiceable) {
           // Post-onboarding checks
           if ((role == UserRole.customer || role == UserRole.worker) && (path.startsWith('/admin') || path == AppRoutes.customerLocation || path == AppRoutes.workerRegister || path == AppRoutes.workerVerification)) {
             return AppRoutes.customerHome;
@@ -173,6 +183,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.welcome,
         builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notServiceable,
+        builder: (context, state) => const NotServiceableScreen(),
       ),
       GoRoute(
         path: AppRoutes.otpVerification,

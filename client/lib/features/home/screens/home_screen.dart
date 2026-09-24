@@ -106,8 +106,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       for (var location in locations) {
         if (location['isActive'] == true) {
-          final lat = location['latitude'] as double;
-          final lng = location['longitude'] as double;
+          final lat = (location['latitude'] as num).toDouble();
+          final lng = (location['longitude'] as num).toDouble();
           final radiusKm = (location['radius'] as num).toDouble();
           
           final distanceInMeters = Geolocator.distanceBetween(

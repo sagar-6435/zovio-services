@@ -2,16 +2,28 @@ import 'package:dio/dio.dart';
 
 class ApiClient {
   // Live backend on Render (use 192.168.137.1 or 192.168.1.4 for physical device testing)
-   static const String baseUrl = 'https://zovio-b.vercel.app/api';
+  static const String baseUrl = 'https://zovio-b.vercel.app/api';
   
   // Local backend for physical device testing over Wi-Fi
-  // static const String baseUrl = 'http://192.168.1.4:5000/api';
+  // static const String baseUrl = 'http://192.168.1.41:5000/api';
   
   final Dio _dio = Dio(BaseOptions(
     baseUrl: baseUrl,
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ));
+  Future<Map<String, dynamic>> checkServiceability(double lat, double lng) async {
+    try {
+      final response = await _dio.post('/locations/check-serviceability', data: {
+        'latitude': lat,
+        'longitude': lng,
+      });
+      return response.data;
+    } catch (e) {
+      print('Error checking serviceability: $e');
+      return {'isServiceable': false, 'location': null};
+    }
+  }
 
   Future<List<dynamic>> getWorkers({double? lat, double? lng}) async {
     try {

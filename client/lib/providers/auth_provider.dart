@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 import '../services/api_client.dart';
 
 enum UserRole {
@@ -18,6 +19,7 @@ class AuthState {
   final String? mobile;
   final bool isLoading;
   final bool isSetupComplete;
+  final bool isServiceableLocation;
 
   const AuthState({
     required this.isAuthenticated,
@@ -28,6 +30,7 @@ class AuthState {
     this.mobile,
     this.isLoading = false,
     this.isSetupComplete = false,
+    this.isServiceableLocation = true,
   });
 
   AuthState copyWith({
@@ -39,6 +42,7 @@ class AuthState {
     String? mobile,
     bool? isLoading,
     bool? isSetupComplete,
+    bool? isServiceableLocation,
   }) {
     return AuthState(
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
@@ -49,6 +53,7 @@ class AuthState {
       mobile: mobile ?? this.mobile,
       isLoading: isLoading ?? this.isLoading,
       isSetupComplete: isSetupComplete ?? this.isSetupComplete,
+      isServiceableLocation: isServiceableLocation ?? this.isServiceableLocation,
     );
   }
 }
@@ -56,6 +61,30 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier() : super(const AuthState(isAuthenticated: false, userRole: UserRole.guest)) {
     _loadState();
+  }
+
+  Future<void> checkLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return; // Cannot check without location
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return; // Cannot check without permission
+        }
+      }
+      if (permission == LocationPermission.deniedForever) return;
+
+      Position position = await Geolocator.getCurrentPosition();
+      final res = await apiClient.checkServiceability(position.latitude, position.longitude);
+      final isServiceable = res['isServiceable'] ?? false;
+      
+      state = state.copyWith(isServiceableLocation: isServiceable);
+    } catch (e) {
+      print('Location check failed: $e');
+    }
   }
 
   Future<void> _loadState() async {
@@ -92,7 +121,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       mobile: mobile,
       isLoading: false,
       isSetupComplete: isSetupComplete,
+      isServiceableLocation: true, // Default to true, will update async
     );
+
+    // Check location asynchronously
+    if (isAuthenticated) {
+      checkLocation();
+    }
   }
 
   Future<void> login(UserRole role, {String? mobile}) async {
@@ -140,6 +175,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isLoading: false,
         isSetupComplete: isSetupComplete,
       );
+
+      // Check location right after login
+      await checkLocation();
+      
     } catch (e) {
       state = state.copyWith(isLoading: false);
       print('Login error: $e');
