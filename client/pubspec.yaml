@@ -73,7 +73,6 @@ flutter:
     - assets/images/
     - assets/images/favicon.png
     - assets/images/splash_logo.png
-    - .env
 
 flutter_launcher_icons:
   image_path: "assets/images/favicon.png"
