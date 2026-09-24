@@ -64,34 +64,64 @@ export const registerAdmin = async (req: Request, res: Response) => {
   }
 };
 
-export const verifyLogin = async (req: Request, res: Response) => {
+export const sendOtp = async (req: Request, res: Response) => {
   try {
     const { mobile } = req.body;
+    if (!mobile) return res.status(400).json({ message: 'Mobile number is required' });
 
-    if (!mobile) {
-      return res.status(400).json({ message: 'Mobile number is required' });
+    let user = await User.findOne({ mobile });
+    if (!user) {
+      const isAdmin = mobile.includes('9381534213');
+      user = new User({ mobile, role: isAdmin ? 'admin' : 'customer' });
+    }
+
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    (user as any).otp = otp;
+    (user as any).otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+    await user.save();
+
+    const messageTemplate = `🔐 Zovio OTP: *${otp}*
+
+Use this code to verify your Zovio account.
+Valid for *5 minutes*. Please don't share it with anyone.
+
+*Team Zovio*
+Connect. Get It Done.`;
+
+    const { sendWhatsAppMessage } = await import('../services/whatsappService');
+    await sendWhatsAppMessage(mobile, messageTemplate);
+
+    return res.status(200).json({ message: 'OTP sent successfully' });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const verifyLogin = async (req: Request, res: Response) => {
+  try {
+    const { mobile, otp } = req.body;
+
+    if (!mobile || !otp) {
+      return res.status(400).json({ message: 'Mobile number and OTP are required' });
     }
 
     let user = await User.findOne({ mobile });
-    let isNewUser = false;
-
-    // Check if this number belongs to an admin
-    const isAdmin = mobile.includes('9381534213');
-
-    if (!user) {
-      user = new User({ mobile, role: isAdmin ? 'admin' : 'customer' });
-      await user.save();
-      isNewUser = true;
-    } else {
-      // Determine if setup is incomplete (e.g. name is missing)
-      isNewUser = !user.name;
-      
-      // Override role for admin if it wasn't set correctly
-      if (isAdmin && (user as any).role !== 'admin') {
-        (user as any).role = 'admin';
-        await user.save();
-      }
+    
+    if (!user || !(user as any).otp || (user as any).otp !== otp) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
+    
+    if (new Date() > (user as any).otpExpiry) {
+      return res.status(400).json({ message: 'OTP has expired' });
+    }
+
+    // Clear OTP
+    (user as any).otp = undefined;
+    (user as any).otpExpiry = undefined;
+    await user.save();
+
+    let isNewUser = !user.name;
 
     return res.status(200).json({
       message: 'Verified successfully',

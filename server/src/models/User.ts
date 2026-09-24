@@ -5,6 +5,8 @@ export interface IUser extends Document {
   name?: string;
   email?: string;
   isBlocked: boolean;
+  otp?: string;
+  otpExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +17,8 @@ const userSchema: Schema = new Schema({
   email: { type: String, unique: true, sparse: true },
   role: { type: String, enum: ['customer', 'worker', 'admin'], default: 'customer' },
   isBlocked: { type: Boolean, default: false },
+  otp: { type: String },
+  otpExpiry: { type: Date },
 }, { timestamps: true });
 
 export default mongoose.model<IUser>('User', userSchema);

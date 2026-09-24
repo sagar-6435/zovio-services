@@ -83,9 +83,19 @@ class ApiClient {
       return false;
     }
   }
-  Future<Map<String, dynamic>> verifyAuth(String mobile) async {
+  Future<bool> sendOtp(String mobile) async {
     try {
-      final response = await _dio.post('/auth/verify', data: {'mobile': mobile});
+      final response = await _dio.post('/auth/send-otp', data: {'mobile': mobile});
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error sending OTP: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyAuth(String mobile, String otp) async {
+    try {
+      final response = await _dio.post('/auth/verify', data: {'mobile': mobile, 'otp': otp});
       return response.data;
     } catch (e) {
       print('Error verifying auth: $e');

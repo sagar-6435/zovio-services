@@ -5,7 +5,7 @@ import 'dart:math';
 
 import '../../../core/routing/route_names.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../services/whatsapp_service.dart';
+import '../../../services/api_client.dart';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -17,7 +17,6 @@ class WelcomeScreen extends ConsumerStatefulWidget {
 class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  final WhatsappService _whatsappService = WhatsappService();
   bool _isLoading = false;
 
   @override
@@ -35,23 +34,18 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
       try {
         final phone = _phoneController.text.trim();
         
-        // Generate a 4-digit mock OTP
-        final otp = (Random().nextInt(9000) + 1000).toString();
+        final success = await apiClient.sendOtp(phone);
         
-        // Send OTP using WhatsApp Gateway
-        final messageTemplate = '''
-🔐 Zovio OTP: *$otp*
-
-Use this code to verify your Zovio account.
-Valid for *5 minutes*. Please don't share it with anyone.
-
-*Team Zovio*
-Connect. Get It Done.
-''';
-        await _whatsappService.sendText(phone, messageTemplate.trim());
-        
-        if (mounted) {
-          context.push('${AppRoutes.otpVerification}?phone=$phone&otp=$otp');
+        if (success) {
+          if (mounted) {
+            context.push('${AppRoutes.otpVerification}?phone=$phone');
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to send OTP. Please try again.')),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {

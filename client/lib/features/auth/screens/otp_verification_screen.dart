@@ -50,16 +50,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       final otp = _controllers.map((c) => c.text).join();
       if (otp.length == 4) {
-        if (widget.mockOtp != null && otp != widget.mockOtp) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Invalid OTP. Please try again.')),
-          );
-          return;
-        }
-        
         // Log user in
         // Defaulting to customer for this simple flow
-        ref.read(authProvider.notifier).login(UserRole.customer, mobile: widget.phone).catchError((e) {
+        ref.read(authProvider.notifier).login(UserRole.customer, mobile: widget.phone, otp: otp).catchError((e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Verification failed. Please check your connection.')),

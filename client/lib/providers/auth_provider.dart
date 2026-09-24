@@ -130,7 +130,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> login(UserRole role, {String? mobile}) async {
+  Future<void> login(UserRole role, {String? mobile, String? otp}) async {
     state = state.copyWith(isLoading: true);
     
     try {
@@ -140,8 +140,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       String? email;
       String? actualMobile = mobile;
       
-      if (mobile != null) {
-        final response = await apiClient.verifyAuth(mobile);
+      if (mobile != null && otp != null) {
+        final response = await apiClient.verifyAuth(mobile, otp);
         userId = response['user']['_id'];
         name = response['user']['name'];
         email = response['user']['email'];
