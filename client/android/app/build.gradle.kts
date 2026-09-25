@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.zovio.zovio"
+    namespace = "com.zovio.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

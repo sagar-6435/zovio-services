@@ -22,7 +22,7 @@ export const createBooking = async (req: Request, res: Response) => {
     const worker = await Worker.findById(workerId);
     const workerName = worker ? worker.name : 'a worker';
     
-    const message = `Hello! I would like to book ${workerName}.\nMobile: ${mobile}\nDate: ${date}\nTime: ${time}\nLocation: ${location}`;
+    const message = `Hello! I would like to book ${workerName} (ID: ${workerId}).\nMobile: ${mobile}\nDate: ${date}\nTime: ${time}\nLocation: ${location}`;
     
     const adminMobileString = process.env.Admin_mobile || process.env.admin_mobile || '+918897536435';
     const adminMobiles = adminMobileString.split(',');
@@ -32,6 +32,14 @@ export const createBooking = async (req: Request, res: Response) => {
       if (number) {
         await sendWhatsAppMessage(number, message);
       }
+    }
+    
+    // Notify customer
+    try {
+      const customerMessage = `Your booking for ${workerName} has been received. Our team will contact you shortly.`;
+      await sendWhatsAppMessage(mobile, customerMessage);
+    } catch (err) {
+      console.warn(`Failed to send customer booking confirmation to ${mobile}`, err);
     }
     
     res.status(201).json(booking);

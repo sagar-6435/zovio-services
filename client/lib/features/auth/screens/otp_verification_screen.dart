@@ -191,32 +191,59 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                     
                     const SizedBox(height: 24),
                     
-                    // Resend Code
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    // Resend Code & Edit Number
+                    Column(
                       children: [
-                        Text(
-                          "Didn't receive the code?",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Didn't receive the code?",
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('OTP Resent via WhatsApp!'),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primaryAction,
                               ),
+                              child: const Text(
+                                'Resend',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                         ),
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('OTP Resent via WhatsApp!'),
-                                backgroundColor: AppColors.success,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Wrong mobile number?",
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context); // Go back to the Welcome screen
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primaryAction,
                               ),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primaryAction,
-                          ),
-                          child: const Text(
-                            'Resend',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                              child: const Text(
+                                'Edit Number',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

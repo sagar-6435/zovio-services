@@ -88,8 +88,14 @@ Valid for *5 minutes*. Please don't share it with anyone.
 *Team Zovio*
 Connect. Get It Done.`;
 
-    const { sendWhatsAppMessage } = await import('../services/whatsappService');
-    await sendWhatsAppMessage(mobile, messageTemplate);
+    console.log(`[DEV ONLY] Generated OTP for ${mobile}: ${otp}`);
+    
+    try {
+      const { sendWhatsAppMessage } = await import('../services/whatsappService');
+      await sendWhatsAppMessage(mobile, messageTemplate);
+    } catch (waError) {
+      console.warn('Could not send WhatsApp message. Skipping for local testing. Error:', waError.message);
+    }
 
     return res.status(200).json({ message: 'OTP sent successfully' });
   } catch (error) {
