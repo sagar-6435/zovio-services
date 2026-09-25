@@ -24,7 +24,7 @@ export const createBooking = async (req: Request, res: Response) => {
     
     const message = `Hello! I would like to book ${workerName} (ID: ${workerId}).\nMobile: ${mobile}\nDate: ${date}\nTime: ${time}\nLocation: ${location}`;
     
-    const adminMobileString = process.env.Admin_mobile || process.env.admin_mobile || '+918897536435';
+    const adminMobileString = process.env.Admin_mobile || process.env.admin_mobile || '+919381435213,+918501008287';
     const adminMobiles = adminMobileString.split(',');
     
     for (const adminMobile of adminMobiles) {
