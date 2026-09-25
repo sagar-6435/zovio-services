@@ -94,7 +94,7 @@ Connect. Get It Done.`;
       const { sendWhatsAppMessage } = await import('../services/whatsappService');
       await sendWhatsAppMessage(mobile, messageTemplate);
     } catch (waError) {
-      console.warn('Could not send WhatsApp message. Skipping for local testing. Error:', waError.message);
+      console.warn('Could not send WhatsApp message. Skipping for local testing. Error:', (waError as Error).message);
     }
 
     return res.status(200).json({ message: 'OTP sent successfully' });
